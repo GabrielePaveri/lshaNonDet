@@ -179,14 +179,9 @@ class ObsTable:
             row_already_present = False
             for seq in unique_sequences:
                 row_2 = upp_obs[self.get_S().index(seq)]
-                if EQ_CONDITION == 's':
-                    if teacher.eqr_query(row, row_2, strict=True):
-                        row_already_present = True
-                        break
-                else:
-                    if teacher.eqr_query(row, row_2, strict=False):
-                        row_already_present = True
-                        break
+                if teacher.eqr_query(row, row_2, strict=False):
+                    row_already_present = True
+                    break
             if not row_already_present:
                 unique_sequences.append(self.get_S()[i])
         # Create a new location for each unique sequence

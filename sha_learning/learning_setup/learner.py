@@ -63,8 +63,8 @@ class Learner:
                 continue
             row_is_in_upper = False
             for s_i, s_word in enumerate(self.obs_table.get_S()):
-                if (EQ_CONDITION == 's' and self.TEACHER.eqr_query(row, upp_obs[s_i], strict=True)) or (
-                        EQ_CONDITION == 'w' and self.TEACHER.eqr_query(row, upp_obs[s_i], strict=False)):
+                # closedness is based on weak equality
+                if self.TEACHER.eqr_query(row, upp_obs[s_i], strict=False):
                     row_is_in_upper = True
                     break
             if not row_is_in_upper:
@@ -76,18 +76,17 @@ class Learner:
         events = self.TEACHER.sul.events
         upp_obs = self.obs_table.get_upper_observations()
         pairs: List[Tuple[Trace, Trace]] = []
-        # FIXME: each pair shows up twice, duplicates should be cleared
-        for index, row in enumerate(upp_obs):
-            if EQ_CONDITION == 's':
-                equal_rows = [i for (i, r) in enumerate(upp_obs) if
-                              index != i and self.TEACHER.eqr_query(row, r, strict=True)]
-            else:
-                equal_rows = [i for (i, r) in enumerate(upp_obs) if
-                              index != i and self.TEACHER.eqr_query(row, r, strict=False)]
 
+        # FIXME: each pair shows up twice, duplicates should be cleared
+        # fixed by replacing "index != i" with "index < i"
+        for index, row in enumerate(upp_obs):
+            # consistency is based on strict equality
+            equal_rows = [i for (i, r) in enumerate(upp_obs) if
+                          index < i and self.TEACHER.eqr_query(row, r, strict=True)]
             S = self.obs_table.get_S()
             equal_pairs = [(S[index], S[equal_i]) for equal_i in equal_rows]
             pairs += equal_pairs
+
         if len(pairs) == 0:
             return True, None
         else:
@@ -107,15 +106,8 @@ class Learner:
                         new_pair_2 = self.obs_table.get_low_S().index(pair[1] + Trace([e]))
                         new_row_2 = self.obs_table.get_lower_observations()[new_pair_2]
 
-                    if EQ_CONDITION == 's':
-                        rows_different = not self.TEACHER.eqr_query(new_row_1, new_row_2, strict=True)
-                    else:
-                        rows_different = not self.TEACHER.eqr_query(new_row_1, new_row_2, strict=False)
-
-                    # FIX Gabriele: in the Strict Eq version any populated row is not equal to a non-populated row
-                    # and in the Weak Eq version rows_different implies both rows are populated
-                    # so both versions work with 'if rows_different', without the 'is_populated()' checks
-                    #if new_row_1.is_populated() and new_row_2.is_populated() and rows_different:
+                    # consistency is based on strict equality
+                    rows_different = not self.TEACHER.eqr_query(new_row_1, new_row_2, strict=True)
                     if rows_different:
                         for e_i, e_word in enumerate(self.obs_table.get_E()):
                             if new_row_1.state[e_i] != new_row_2.state[e_i] \
@@ -132,11 +124,8 @@ class Learner:
         for index, row in enumerate(low_obs):
             # if there is a populated row in lower portion that is not in the upper portion
             # the corresponding word is added to the S word set
-            if EQ_CONDITION == 's':
-                row_present = any([self.TEACHER.eqr_query(row, row_2, strict=True) for row_2 in upp_obs])
-            else:
-                row_present = any([self.TEACHER.eqr_query(row, row_2, strict=False) for row_2 in upp_obs])
-
+            # Reminder: closedness is based on weak equality
+            row_present = any([self.TEACHER.eqr_query(row, row_2, strict=False) for row_2 in upp_obs])
             if row.is_populated() and not row_present:
                 upp_obs.append(Row(row.state))
                 new_s_word: Trace = low_S[index]

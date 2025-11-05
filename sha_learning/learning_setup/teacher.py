@@ -257,16 +257,24 @@ class Teacher:
     # returns true/false
     #############################################
     def eqr_query(self, row1: Row, row2: Row, strict=False):
+        # two rows are strictly equal if they are identical
         if strict:
             return row1 == row2
 
-        for i, state in enumerate(row1.state):
-            # if both rows have filled cells which differ from each other,
+        # two rows are weakly equal
+        # if both are not populated
+        # or if both are populated and they have filled cells which differ from each other
+        if row1.is_populated() != row2.is_populated():
+            # if one row is populated while the other is not
             # weak equality is violated
-            if state.observed() and row2.state[i].observed() and state != row2.state[i]:
-                return False
-        else:
-            return True
+            return False
+        elif row1.is_populated() and row2.is_populated():
+            for i, state in enumerate(row1.state):
+                # if both rows have filled cells which differ from each other,
+                # weak equality is violated
+                if state.observed() and row2.state[i].observed() and state != row2.state[i]:
+                    return False
+        return True
 
     #############################################
     # KNOWLEDGE REFINEMENT QUERY:
@@ -327,81 +335,58 @@ class Teacher:
     #############################################
     # COUNTEREXAMPLE QUERY:
     # looks for a counterexample to current obs. table
-    # returns counterexample t if:
-    # -> t highlights non-closedness
-    # -> t highlights non-consistency
+    # returns counterexample tr if:
+    # -> tr highlights non-closedness
+    # -> tr highlights non-coherence between tr and the current obs. table
+    # A table is coherent with a new trace tr if for all s \in S such that row(s) w.eq. row(tr)
+    # for every event e there exists s' \in S such that row(tr+e) w.eq. row(s') w.eq. row(s+e)
     #############################################
     def not_closed(self, table, new_row):
-        if EQ_CONDITION == 's':
-            eq_rows = [row for row in table.get_upper_observations() if
-                       self.eqr_query(new_row, row, strict=True)]
-        else:
-            eq_rows = [row for row in table.get_upper_observations() if
-                       self.eqr_query(new_row, row, strict=False)]
-
-        not_ambiguous = len(set(eq_rows)) <= 1
-        diff_rows = [row for row in eq_rows if
-                     not self.eqr_query(new_row, row, strict=True)]
+        # Reminder: closedness is based on weak equality
+        eq_rows = [row for row in table.get_upper_observations() if
+                   self.eqr_query(new_row, row, strict=False)]
 
         # FIXME: len(eq_rows)==0 does not work when rows have misaligned /bot in the signature
         # thus missing actual counterexample.
         # len(diff_rows) > 0 only works if all rows share at least one cell (as in the energy
         # CS, where all traces start with 'l').
         # A more accurate condition (TBD) should be a combination of the two.
-        return len(eq_rows) == 0, not_ambiguous
+        return len(eq_rows) == 0
 
-    def not_consistent(self, table, S, low_S, new_row, prefix):
+    def not_coherent(self, table, S, low_S, new_row, prefix):
+        upp_obs = table.get_upper_observations()
+
         for s_i, s_word in enumerate(S):
-            old_row = table.get_upper_observations()[s_i] if s_i < len(S) else \
-                table.get_lower_observations()[s_i - len(S)]
+            old_row = table.get_upper_observations()[s_i]
 
             # finds equal rows in S
-            if EQ_CONDITION == 's':
-                equal = self.eqr_query(old_row, new_row, strict=True)
-            else:
-                equal = self.eqr_query(old_row, new_row, strict=False)
+            weakly_equal = self.eqr_query(old_row, new_row, strict=False)
 
-            if equal:
+            if weakly_equal:
                 for event in self.sul.events:
-                    # if the hypothetical discriminating event is already in E
-                    discr_is_prefix = False
-                    for e in table.get_E():
-                        if str(e).startswith(event.symbol):
-                            continue
-                    # else checks all 1-step distant rows
+                    coherent = False
                     if s_word + Trace([event]) in S:
-                        old_row_a: Row = table.get_upper_observations()[
-                            S.index(s_word + Trace([event]))]
+                        old_row_a: Row = table.get_upper_observations()[S.index(s_word + Trace([event]))]
                     elif s_word + Trace([event]) in low_S:
-                        old_row_a: Row = table.get_lower_observations()[
-                            low_S.index(s_word + Trace([event]))]
-                    else:
-                        continue
-                    row_1_filled = old_row_a.state[0].observed()
+                        old_row_a: Row = table.get_lower_observations()[low_S.index(s_word + Trace([event]))]
                     row_2 = Row([])
                     for e in table.get_E():
                         id_model_2 = self.mi_query(prefix + Trace([event]) + e)
-                        id_distr_2 = self.ht_query(prefix + Trace([event]) + e, id_model_2,
-                                                   save=False)
+                        id_distr_2 = self.ht_query(prefix + Trace([event]) + e, id_model_2, save=False)
                         if id_model_2 is None or id_distr_2 is None:
                             row_2.state.append(State([(None, None)]))
                         else:
                             row_2.state.append(State([(id_model_2, id_distr_2)]))
                     row_2_filled = row_2.state[0].observed()
+                    if row_2_filled:
+                        for index, row in enumerate(upp_obs):
+                            if self.eqr_query(old_row_a, row, strict=False) and self.eqr_query(row_2, row, strict=False):
+                                coherent = True
+                                break
+                        if not coherent:
+                            return True, s_word
 
-                    # FIX Gabriele (MOD1):
-                    # in the Strict Eq version row(prefix+e) has to be populated - i.e. row_2_filled == true,
-                    # but row(s_word+e) doesn't - i.e. row_1_filled may be false.
-                    #if EQ_CONDITION == 's' and (row_1_filled and row_2_filled and not discr_is_prefix and
-                    #                            not self.eqr_query(row_2, old_row_a, strict=True)):
-                    if EQ_CONDITION == 's' and (row_2_filled and not discr_is_prefix and
-                                                not self.eqr_query(row_2, old_row_a, strict=True)):
-                        return True, event, s_word
-
-                    elif EQ_CONDITION == 'w' and (row_1_filled and row_2_filled and not discr_is_prefix and
-                                                  not self.eqr_query(row_2, old_row_a, strict=False)):
-                        return True, event, s_word
-        return False, None, None
+        return False, None
 
     def get_counterexample(self, table: ObsTable):
         LOGGER.info('Looking for counterexample...')
@@ -418,7 +403,6 @@ class Teacher:
         for i, trace in tqdm(enumerate(traces), total=len(traces)):
             for prefix in trace.get_prefixes():
                 LOGGER.debug('Checking {}'.format(str(prefix)))
-                # prefix is still not in table
                 # FIX Gabriele: traces in low_S need to be considered as possible counterexamples
                 #if prefix not in S and prefix not in low_S and prefix not in not_counter:
                 if prefix not in S and prefix not in not_counter:
@@ -432,37 +416,27 @@ class Teacher:
                             new_row.state.append(State([(id_model, id_distr)]))
                         else:
                             new_row.state.append(State([(None, None)]))
+
                     # if there are sufficient data to fill the new row
                     if new_row.is_populated():
-
-                        not_closed, not_ambiguous = self.not_closed(table, new_row)
+                        # check non-closedness
+                        not_closed = self.not_closed(table, new_row)
                         if not_closed:
                             # found non-closedness
                             LOGGER.warn("!! MISSED NON-CLOSEDNESS !!")
                             return prefix
-
-                        # checks non-consistency only for rows that are not ambiguous
-                        elif EQ_CONDITION == 'w' and not_ambiguous:
-                            not_consistent, event, s_word = self.not_consistent(table, S, low_S, new_row, prefix)
-                            if not_consistent:
-                                LOGGER.warn(
-                                    "!! MISSED NON-CONSISTENCY ({}, {}) !!".format(Trace([event]), s_word))
-                                return prefix
-                            else:
-                                not_counter.append(prefix)
-
-                        # FIX Gabriele: in the Strict Eq version non-consistency must be checked for "ambiguous" rows too
-                        elif EQ_CONDITION == 's':
-                            not_consistent, event, s_word = self.not_consistent(table, S, low_S, new_row, prefix)
-                            if not_consistent:
-                                LOGGER.warn(
-                                    "!! MISSED NON-CONSISTENCY ({}, {}) !!".format(Trace([event]), s_word))
-                                return prefix
-                            else:
-                                not_counter.append(prefix)
-
                         else:
-                            not_counter.append(prefix)
+                            # check non-coherence
+                            not_coherent, s_word = self.not_coherent(table, S, low_S, new_row, prefix)
+                            if not_coherent:
+                                LOGGER.warn("!! MISSED NON-CONSISTENCY ({}) !!".format(s_word))
+                                return prefix
+                            else:
+                                not_counter.append(prefix)
+
+                    else:
+                        not_counter.append(prefix)
+
         else:
             # TODO: workaround to treat as a counterexample traces with events
             # that are missing from the current obs. table (which is NOT the case in L*).
