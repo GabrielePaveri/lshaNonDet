@@ -112,7 +112,11 @@ class Learner:
                     else:
                         rows_different = not self.TEACHER.eqr_query(new_row_1, new_row_2, strict=False)
 
-                    if new_row_1.is_populated() and new_row_2.is_populated() and rows_different:
+                    # FIX Gabriele: in the Strict Eq version any populated row is not equal to a non-populated row
+                    # and in the Weak Eq version rows_different implies both rows are populated
+                    # so both versions work with 'if rows_different', without the 'is_populated()' checks
+                    #if new_row_1.is_populated() and new_row_2.is_populated() and rows_different:
+                    if rows_different:
                         for e_i, e_word in enumerate(self.obs_table.get_E()):
                             if new_row_1.state[e_i] != new_row_2.state[e_i] \
                                     and (Trace([e]) + e_word) not in self.obs_table.get_E():

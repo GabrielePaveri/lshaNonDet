@@ -167,7 +167,7 @@ class Teacher:
         if len(segments) > 0:
             eligible_distributions = self.sul.vars[0].get_distr_for_flow(flow.f_id)
 
-            metrics = [self.sul.get_ht_params(segment, flow) for segment in segments]
+            metrics = [self.sul.get_ht_params(segment, flow) for segment in segments if segment]
             metrics = [met for met in metrics if met is not None]
             unique_metrics = list(set(metrics))
             if len(unique_metrics) > 1:
@@ -388,9 +388,16 @@ class Teacher:
                         else:
                             row_2.state.append(State([(id_model_2, id_distr_2)]))
                     row_2_filled = row_2.state[0].observed()
-                    if EQ_CONDITION == 's' and (row_1_filled and row_2_filled and not discr_is_prefix and
+
+                    # FIX Gabriele (MOD1):
+                    # in the Strict Eq version row(prefix+e) has to be populated - i.e. row_2_filled == true,
+                    # but row(s_word+e) doesn't - i.e. row_1_filled may be false.
+                    #if EQ_CONDITION == 's' and (row_1_filled and row_2_filled and not discr_is_prefix and
+                    #                            not self.eqr_query(row_2, old_row_a, strict=True)):
+                    if EQ_CONDITION == 's' and (row_2_filled and not discr_is_prefix and
                                                 not self.eqr_query(row_2, old_row_a, strict=True)):
                         return True, event, s_word
+
                     elif EQ_CONDITION == 'w' and (row_1_filled and row_2_filled and not discr_is_prefix and
                                                   not self.eqr_query(row_2, old_row_a, strict=False)):
                         return True, event, s_word
@@ -412,7 +419,9 @@ class Teacher:
             for prefix in trace.get_prefixes():
                 LOGGER.debug('Checking {}'.format(str(prefix)))
                 # prefix is still not in table
-                if prefix not in S and prefix not in low_S and prefix not in not_counter:
+                # FIX Gabriele: traces in low_S need to be considered as possible counterexamples
+                #if prefix not in S and prefix not in low_S and prefix not in not_counter:
+                if prefix not in S and prefix not in not_counter:
                     # fills hypothetical new row
                     new_row = Row([])
                     for e_i, e_word in enumerate(table.get_E()):
@@ -433,8 +442,17 @@ class Teacher:
                             return prefix
 
                         # checks non-consistency only for rows that are not ambiguous
-                        elif not_ambiguous:
+                        elif EQ_CONDITION == 'w' and not_ambiguous:
+                            not_consistent, event, s_word = self.not_consistent(table, S, low_S, new_row, prefix)
+                            if not_consistent:
+                                LOGGER.warn(
+                                    "!! MISSED NON-CONSISTENCY ({}, {}) !!".format(Trace([event]), s_word))
+                                return prefix
+                            else:
+                                not_counter.append(prefix)
 
+                        # FIX Gabriele: in the Strict Eq version non-consistency must be checked for "ambiguous" rows too
+                        elif EQ_CONDITION == 's':
                             not_consistent, event, s_word = self.not_consistent(table, S, low_S, new_row, prefix)
                             if not_consistent:
                                 LOGGER.warn(

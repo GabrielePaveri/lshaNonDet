@@ -41,6 +41,7 @@ class SystemUnderLearning:
     #
     # TRACE PROCESSING METHODS
     #
+
     def find_chg_pts(self, driver: List[SampledSignal]):
         values = [{pt.timestamp: pt.value for pt in sig.points} for sig in driver]
         chg_pts: List[ChangePoint] = []

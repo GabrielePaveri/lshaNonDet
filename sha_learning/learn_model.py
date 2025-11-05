@@ -13,6 +13,7 @@ from sha_learning.case_studies.energy_sim.sul_definition import energy_sim_cs
 from sha_learning.case_studies.gr3n.sul_definition import gr3n_cs
 from sha_learning.case_studies.hri.sul_definition import hri_cs
 from sha_learning.case_studies.thermostat.sul_definition import thermostat_cs
+from sha_learning.case_studies.WeakEqFail.sul_definition import WeakEqFail_cs
 from sha_learning.domain.lshafeatures import Trace
 from sha_learning.domain.obstable import ObsTable
 from sha_learning.domain.sulfeatures import SystemUnderLearning
@@ -54,10 +55,13 @@ elif CS == 'AUTO_TWIN':
     SUL, events_labels_dict = getSUL()
 elif CS == 'GR3N':
     SUL = gr3n_cs
+elif CS == 'WEAK_EQ_FAIL':
+    SUL = WeakEqFail_cs
 else:
     raise RuntimeError
 
-TEACHER = Teacher(SUL, pov=sys.argv[1], start_dt=sys.argv[2], end_dt=sys.argv[3])
+#TEACHER = Teacher(SUL, pov=sys.argv[1], start_dt=sys.argv[2], end_dt=sys.argv[3])
+TEACHER = Teacher(SUL)
 
 long_traces = [Trace(events=[e]) for e in SUL.events]
 obs_table = ObsTable([], [Trace(events=[])], long_traces)
