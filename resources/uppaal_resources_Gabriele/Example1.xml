@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+broadcast chan a, b, c;</declaration>
+	<template>
+		<name x="5" y="5">Receiver</name>
+		<declaration>// Place local declarations here.
+
+clock T = 0;</declaration>
+		<location id="id0" x="-178" y="-93">
+			<name x="-195" y="-144">Loc0</name>
+			<label kind="invariant" x="-195" y="-127">T'==1</label>
+			<label kind="exponentialrate" x="-187" y="-161">1</label>
+		</location>
+		<location id="id1" x="-110" y="0">
+			<name x="-127" y="17">Loc1</name>
+			<label kind="invariant" x="-127" y="34">T'==2</label>
+			<label kind="exponentialrate" x="-119" y="51">1</label>
+		</location>
+		<location id="id2" x="-42" y="-93">
+			<name x="-51" y="-144">Loc2</name>
+			<label kind="invariant" x="-59" y="-127">T'==3</label>
+			<label kind="exponentialrate" x="-42" y="-161">1</label>
+		</location>
+		<init ref="id0"/>
+		<transition id="id3">
+			<source ref="id2"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="34" y="-68">c!</label>
+			<nail x="8" y="-25"/>
+			<nail x="42" y="-93"/>
+		</transition>
+		<transition id="id4">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-51" y="-42">b!</label>
+			<nail x="-59" y="-34"/>
+		</transition>
+		<transition id="id5">
+			<source ref="id1"/>
+			<target ref="id2"/>
+		</transition>
+		<transition id="id6">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-93" y="-59">a!</label>
+		</transition>
+		<transition id="id7">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-161" y="-51">b!</label>
+		</transition>
+		<transition id="id8">
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-119" y="-110">a!</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+r = Receiver();
+// List one or more processes to be composed into a system.
+system r;</system>
+	<queries>
+		<query>
+			<formula>simulate[&lt;=10] {r.T}</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-07-02 16:37:54 +0200">
+				<plot title="Simulations (1)" xaxis="time" yaxis="value">
+					<series title="r.T" type="l" color="0xff0000" encoding="csv">0.0,0.0
+1.9101821063700257,1.9101821063700257
+1.9457456464928382,1.9813091866156507
+10.0,26.14407224713713
+					</series>
+					<comment/>
+				</plot>
+			</result>
+		</query>
+	</queries>
+</nta>

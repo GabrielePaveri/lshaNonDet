@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+broadcast chan a,b,c,start;
+
+const int TAU = 20;
+	</declaration>
+	<template>
+		<name>Receiver</name>
+		<location id="id0" x="0" y="0">
+		</location>
+		<location id="id1" x="0" y="136">
+			<committed/>
+		</location>
+		<init ref="id1"/>
+		<transition id="id2">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="42" y="76">c?</label>
+			<nail x="42" y="76"/>
+			<nail x="8" y="17"/>
+		</transition>
+		<transition id="id3">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-59" y="76">b?</label>
+			<nail x="-42" y="76"/>
+		</transition>
+		<transition id="id4">
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="0" y="-76">c?</label>
+			<nail x="42" y="-59"/>
+			<nail x="-25" y="-59"/>
+		</transition>
+		<transition id="id5">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="0" y="59">a?</label>
+			<nail x="0" y="25"/>
+		</transition>
+		<transition id="id6">
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-68" y="-8">b?</label>
+			<nail x="-42" y="34"/>
+			<nail x="-42" y="-34"/>
+		</transition>
+		<transition id="id7">
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="59" y="-8">a?</label>
+			<nail x="51" y="34"/>
+			<nail x="51" y="-34"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Sender</name>
+		<declaration>// Place local declarations here.
+
+int loc = 0;
+double slope;
+
+clock x;
+
+void reset() {
+    x = 0;
+}</declaration>
+		<location id="id8" x="-306" y="-68">
+			<name x="-323" y="-51">Initial</name>
+			<committed/>
+		</location>
+		<location id="id9" x="-110" y="-17">
+			<name x="-127" y="-1">Loc3</name>
+			<label kind="exponentialrate" x="-120" y="17">1</label>
+		</location>
+		<location id="id10" x="-110" y="-102">
+			<name x="-127" y="-85">Loc2</name>
+			<label kind="exponentialrate" x="-120" y="-68">1</label>
+		</location>
+		<location id="id11" x="85" y="-68">
+			<name x="68" y="-51">Loc4</name>
+			<label kind="exponentialrate" x="75" y="-34">1</label>
+		</location>
+		<location id="id12" x="-110" y="-272">
+			<name x="-120" y="-306">Loc6</name>
+			<label kind="exponentialrate" x="-110" y="-323">1</label>
+		</location>
+		<location id="id13" x="68" y="-272">
+			<name x="58" y="-306">Loc7</name>
+			<label kind="exponentialrate" x="68" y="-323">1</label>
+		</location>
+		<init ref="id8"/>
+		<transition id="id14">
+			<source ref="id13"/>
+			<target ref="id11"/>
+			<label kind="guard" x="102" y="-212">x &gt;= 1</label>
+			<label kind="synchronisation" x="110" y="-195">a!</label>
+			<label kind="assignment" x="25" y="-229">slope = 8.0,
+loc = 4,
+reset()</label>
+		</transition>
+		<transition id="id15">
+			<source ref="id12"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-51" y="-306">x &gt;= 1</label>
+			<label kind="synchronisation" x="-42" y="-289">a!</label>
+			<label kind="assignment" x="-76" y="-272">slope = 14.0,
+loc = 7,
+reset()</label>
+		</transition>
+		<transition id="id16">
+			<source ref="id8"/>
+			<target ref="id12"/>
+			<label kind="synchronisation" x="-245" y="-259">c!</label>
+			<label kind="assignment" x="-246" y="-238">slope = 4.0,
+loc = 6,
+reset()</label>
+			<nail x="-263" y="-212"/>
+		</transition>
+		<transition id="id17">
+			<source ref="id9"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-68" y="-59">x &gt;= 1</label>
+			<label kind="synchronisation" x="-34" y="-34">b!</label>
+			<label kind="assignment" x="-68" y="-17">slope = 8.0,
+loc = 4,
+reset()</label>
+		</transition>
+		<transition id="id18">
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="guard" x="-68" y="-85">x &gt;= 1</label>
+			<label kind="synchronisation" x="-25" y="-170">a!</label>
+			<label kind="assignment" x="-59" y="-153">slope = 8.0,
+loc = 4,
+reset()</label>
+		</transition>
+		<transition id="id19">
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-221" y="-42">b!</label>
+			<label kind="assignment" x="-263" y="-25">slope = 4.0,
+loc = 3,
+reset()</label>
+		</transition>
+		<transition id="id20">
+			<source ref="id8"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-220" y="-161">a!</label>
+			<label kind="assignment" x="-263" y="-144">slope = 4.0,
+loc = 2,
+reset()</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+s = Sender();
+r = Receiver();
+// List one or more processes to be composed into a system.
+system s,r;
+</system>
+	<queries>
+		<query>
+			<formula>simulate[&lt;=TAU] {s.loc, s.slope, s.x}</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-09-16 13:05:10 +0200">
+				<plot title="Simulations (1)" xaxis="time" yaxis="value">
+					<series title="s.loc" type="l" color="0xff0000" encoding="csv">0.0,0.0
+0.0,6.0
+1.0882415720956047,6.0
+1.0882415720956047,7.0
+2.2836251972725243,7.0
+2.2836251972725243,4.0
+100.0,4.0
+					</series>
+					<series title="s.slope" type="l" color="0x00ff00" encoding="csv">0.0,0.0
+0.0,4.0
+1.0882415720956047,4.0
+1.0882415720956047,14.0
+2.2836251972725243,14.0
+2.2836251972725243,8.0
+100.0,8.0
+					</series>
+					<series title="s.x" type="l" color="0x0000ff" encoding="csv">0.0,0.0
+1.0882415720956047,1.0882415720956047
+1.0882415720956047,0.0
+2.2836251972725243,1.1953836251769199
+2.2836251972725243,0.0
+100.0,97.71637480272747
+					</series>
+					<comment/>
+				</plot>
+			</result>
+		</query>
+	</queries>
+</nta>

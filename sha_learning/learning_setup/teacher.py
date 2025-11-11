@@ -263,7 +263,7 @@ class Teacher:
 
         # two rows are weakly equal
         # if both are not populated
-        # or if both are populated and they have filled cells which differ from each other
+        # or if both are populated and they don't have filled cells which differ from each other
         if row1.is_populated() != row2.is_populated():
             # if one row is populated while the other is not
             # weak equality is violated

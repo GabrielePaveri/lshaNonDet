@@ -1,0 +1,1 @@
+simulate[<=TAU] {s.loc, s.slope}

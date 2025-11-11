@@ -28,9 +28,9 @@ double Normal(double mean, double stdDev) {
 const int MAX_E = 15;
 bool force_exe = true;
 int curr = 0;
-int force_open[MAX_E] = {0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1};
+int force_open[MAX_E] = {0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
-const int TAU = 350;
+const int TAU = 200;
 const int R = 10;
 </declaration>
 	<template>
@@ -120,7 +120,7 @@ void update_K(bool on, int open) {
 		<transition id="id9">
 			<source ref="id8"/>
 			<target ref="id6"/>
-			<label kind="assignment" x="-94" y="85">x=0,
+			<label kind="assignment" x="-93" y="85">x=0,
 update_Tr(1)</label>
 		</transition>
 		<transition id="id10">
