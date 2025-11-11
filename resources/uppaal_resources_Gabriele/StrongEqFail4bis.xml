@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+broadcast chan a,b,start;
+
+const int TAU = 20;
+	</declaration>
+	<template>
+		<name>Receiver</name>
+		<location id="id0" x="0" y="0">
+		</location>
+		<location id="id1" x="0" y="85">
+			<committed/>
+		</location>
+		<init ref="id1"/>
+		<transition id="id2">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="8" y="42">start?</label>
+			<nail x="0" y="25"/>
+		</transition>
+		<transition id="id3">
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-68" y="-8">b?</label>
+			<nail x="-42" y="34"/>
+			<nail x="-42" y="-34"/>
+		</transition>
+		<transition id="id4">
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="59" y="-8">a?</label>
+			<nail x="51" y="34"/>
+			<nail x="51" y="-34"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Sender</name>
+		<declaration>// Place local declarations here.
+
+int loc = 0;
+double slope;
+
+clock x;
+
+void reset() {
+    x = 0;
+}</declaration>
+		<location id="id5" x="-306" y="-68">
+			<name x="-323" y="-51">Loc1</name>
+			<label kind="exponentialrate" x="-316" y="-34">1</label>
+		</location>
+		<location id="id6" x="-136" y="-68">
+			<name x="-153" y="-51">Loc4</name>
+			<label kind="exponentialrate" x="-146" y="-34">1</label>
+		</location>
+		<location id="id7" x="-476" y="-68">
+			<name x="-502" y="-51">Initial</name>
+			<committed/>
+		</location>
+		<location id="id8" x="25" y="-68">
+			<name x="8" y="-51">Loc5</name>
+			<label kind="exponentialrate" x="15" y="-34">1</label>
+		</location>
+		<location id="id9" x="-187" y="85">
+			<name x="-170" y="76">Loc6</name>
+			<label kind="exponentialrate" x="-161" y="59">1</label>
+		</location>
+		<init ref="id7"/>
+		<transition id="id10">
+			<source ref="id5"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-246" y="-17">x &gt;= 1</label>
+			<label kind="synchronisation" x="-272" y="8">b!</label>
+			<label kind="assignment" x="-306" y="25">slope = 8.0,
+loc = 6,
+reset()</label>
+		</transition>
+		<transition id="id11">
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-246" y="-59">x &gt;= 1</label>
+			<label kind="synchronisation" x="-229" y="-153">a!</label>
+			<label kind="assignment" x="-263" y="-136">slope = 8.0,
+loc = 4,
+reset()</label>
+		</transition>
+		<transition id="id12">
+			<source ref="id8"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-77" y="-68">x &gt;= 1</label>
+			<label kind="synchronisation" x="-60" y="-42">a!</label>
+			<label kind="assignment" x="-102" y="-25">slope = 8.0,
+loc = 4,
+reset()</label>
+			<nail x="-51" y="-42"/>
+		</transition>
+		<transition id="id13">
+			<source ref="id6"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-77" y="-93">x &gt;= 1</label>
+			<label kind="synchronisation" x="-60" y="-170">a!</label>
+			<label kind="assignment" x="-94" y="-153">slope = 10.0,
+loc = 5,
+reset()</label>
+			<nail x="-51" y="-93"/>
+		</transition>
+		<transition id="id14">
+			<source ref="id7"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-425" y="-153">start!</label>
+			<label kind="assignment" x="-442" y="-136">slope = 2.0,
+loc = 1,
+reset()</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+s = Sender();
+r = Receiver();
+// List one or more processes to be composed into a system.
+system s,r;
+</system>
+	<queries>
+		<query>
+			<formula>simulate[&lt;=TAU] {s.loc, s.slope, s.x}</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2025-09-16 14:31:34 +0200">
+				<plot title="Simulations (1)" xaxis="time" yaxis="value">
+					<series title="s.loc" type="l" color="0xff0000" encoding="csv">0.0,0.0
+0.0,1.0
+1.1091300632871128,1.0
+1.1091300632871128,6.0
+100.0,6.0
+					</series>
+					<series title="s.slope" type="l" color="0x00ff00" encoding="csv">0.0,0.0
+0.0,2.0
+1.1091300632871128,2.0
+1.1091300632871128,8.0
+100.0,8.0
+					</series>
+					<series title="s.x" type="l" color="0x0000ff" encoding="csv">0.0,0.0
+1.1091300632871128,1.1091300632871128
+1.1091300632871128,0.0
+100.0,98.89086993671289
+					</series>
+					<comment/>
+				</plot>
+			</result>
+		</query>
+	</queries>
+</nta>
