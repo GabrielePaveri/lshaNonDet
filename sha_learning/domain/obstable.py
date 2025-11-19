@@ -2,8 +2,10 @@ import configparser
 import os
 from typing import List, Dict
 
+#from sha_learning.case_studies.auto_twin.sul_definition import events
 from sha_learning.domain.lshafeatures import Trace, State, EMPTY_STRING
 from sha_learning.domain.shafeatures import StochasticHybridAutomaton, Location, Edge
+from sha_learning.learning_setup import learner
 from sha_learning.learning_setup.logger import Logger
 
 LOGGER = Logger('Obs.Table Handler')
@@ -115,43 +117,6 @@ class ObsTable:
     def print(self, filter_empty=False):
         LOGGER.warn(self.__str__(filter_empty))
 
-    def get_loc_from_word(self, word: Trace, locations: List[Location], seq_to_loc: Dict[Trace, str], teacher):
-        candidate_dest_locs = []
-
-        if word in seq_to_loc.keys():
-            loc = [l for l in locations if l.name == seq_to_loc[word]][0]
-            candidate_dest_locs.append(loc)
-        else:
-            if word in self.get_S():
-                curr_row = self.get_upper_observations()[self.get_S().index(word)]
-            elif word in self.get_low_S():
-                curr_row = self.get_lower_observations()[self.get_low_S().index(word)]
-            elif Trace(word[:-1]) in self.get_S():
-                row = self.get_S().index(Trace(word[:-1]))
-                column = self.get_E().index(Trace([word[-1]]))
-                needed_state = self.get_upper_observations()[row].state[column]
-                curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
-            elif Trace(word[:-1]) in self.get_low_S():
-                row = self.get_low_S().index(Trace(word[:-1]))
-                column = self.get_E().index(Trace([word[-1]]))
-                needed_state = self.get_lower_observations()[row].state[column]
-                curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
-
-            if not curr_row.is_populated():
-                return []
-
-            for i, row in enumerate(self.get_upper_observations()):
-                if EQ_CONDITION == 's':
-                    if self.get_S()[i] in seq_to_loc.keys() and teacher.eqr_query(curr_row, row, strict=True):
-                        loc = [l for l in locations if l.name == seq_to_loc[self.get_S()[i]]][0]
-                        candidate_dest_locs.append(loc)
-                else:
-                    if self.get_S()[i] in seq_to_loc.keys() and teacher.eqr_query(curr_row, row, strict=False):
-                        loc = [l for l in locations if l.name == seq_to_loc[self.get_S()[i]]][0]
-                        candidate_dest_locs.append(loc)
-
-        return candidate_dest_locs
-
     def add_init_edges(self, locations: List[Location], edges: List[Edge], seq_to_loc: Dict[Trace, str], teacher):
         init_loc = Location('__init__', None)
         locations.append(init_loc)
@@ -160,7 +125,7 @@ class ObsTable:
         one_word_lower = [word for word in self.get_low_S() if len(word) == 1]
 
         for word in one_word_upper + one_word_lower:
-            dest_locs = self.get_loc_from_word(word, locations, seq_to_loc, teacher)
+            dest_locs = self.get_destlocs_from_word(word, locations, seq_to_loc, teacher)
             for dest_loc in dest_locs:
                 if dest_loc is not None:
                     edges.append(Edge(init_loc, dest_loc, sync=str(word)))
@@ -193,60 +158,77 @@ class ObsTable:
             locations.append(Location(new_name, new_flow))
             unique_sequences_dict[seq] = new_name
 
-        # start building edges list for upper part of the table
+        # Build edges list
         edges: List[Edge] = []
-        for s_i, s_word in enumerate(self.get_S()):
-            for t_i, t_word in enumerate(self.get_E()):
-                if upp_obs[s_i].state[t_i].observed():
-                    word: Trace = s_word + t_word
-                    entry_word = Trace(word[:len(word) - 1])
-                    if len(entry_word) == 0:
-                        continue
+        for s_i, s_word in enumerate(unique_sequences):
+            start_word = s_word
+            # FIXME: not sure whether the following if condition is necessary
+            if len(start_word) == 0:
+                continue
+            start_loc = self.get_startloc_from_word(start_word, locations, unique_sequences_dict, teacher)
+            for e in teacher.sul.events:
+                dest_word = s_word + Trace([e])
+                dest_locs = self.get_destlocs_from_word(dest_word, locations, unique_sequences_dict, teacher)
+                labels = str(Trace(dest_word[-1:]))
+                for dest_loc in dest_locs:
+                    new_edge = Edge(start_loc, dest_loc, sync=labels)
+                    # FIXME: condition "not in edges" might be useless
+                    if start_loc is not None and dest_loc is not None and new_edge not in edges:
+                        edges.append(new_edge)
+
+        # start building edges list for upper part of the table
+        #for s_i, s_word in enumerate(self.get_S()):
+        #    for t_i, t_word in enumerate(self.get_E()):
+        #        if upp_obs[s_i].state[t_i].observed():
+        #            word: Trace = s_word + t_word
+        #            entry_word = Trace(word[:len(word) - 1])
+        #            if len(entry_word) == 0:
+        #                continue
 
                     # FIX Gabriele: using a different variant of get_loc_from_words for the nondeterministic version of M^*
-                    if DETERMINISM == 'd':
-                        start_loc = self.get_loc_from_word(entry_word, locations, unique_sequences_dict, teacher)[0]
-                        dest_locs = self.get_loc_from_word(word, locations, unique_sequences_dict, teacher)
-                    elif DETERMINISM == 'n':
-                        start_loc = self.get_startloc_from_word(entry_word, locations, unique_sequences_dict, teacher)[0]
-                        dest_locs = self.get_destlocs_from_word(word, locations, unique_sequences_dict, teacher)
+        #            if DETERMINISM == 'd':
+        #                start_loc = self.get_loc_from_word(entry_word, locations, unique_sequences_dict, teacher)[0]
+        #                dest_locs = self.get_loc_from_word(word, locations, unique_sequences_dict, teacher)
+        #            elif DETERMINISM == 'n':
+        #                start_loc = self.get_startloc_from_word(entry_word, locations, unique_sequences_dict, teacher)[0]
+        #                dest_locs = self.get_destlocs_from_word(word, locations, unique_sequences_dict, teacher)
 
-                    labels = str(Trace(word[-1:]))
-                    for dest_loc in dest_locs:
-                        new_edge = Edge(start_loc, dest_loc, sync=labels)
-                        if start_loc is not None and dest_loc is not None and new_edge not in edges:
-                            edges.append(new_edge)
+        #            labels = str(Trace(word[-1:]))
+        #            for dest_loc in dest_locs:
+        #                new_edge = Edge(start_loc, dest_loc, sync=labels)
+        #                if start_loc is not None and dest_loc is not None and new_edge not in edges:
+        #                    edges.append(new_edge)
 
         # start building edges list for lower part of the table
-        for s_i, s_word in enumerate(self.get_low_S()):
-            for t_i, t_word in enumerate(self.get_E()):
-                if low_obs[s_i].state[t_i].observed():
-                    word: Trace = s_word + t_word
-                    entry_word = Trace(word[:len(word) - 1])
-                    if len(entry_word) == 0:
-                        continue
+        #for s_i, s_word in enumerate(self.get_low_S()):
+        #    for t_i, t_word in enumerate(self.get_E()):
+        #        if low_obs[s_i].state[t_i].observed():
+        #            word: Trace = s_word + t_word
+        #            entry_word = Trace(word[:len(word) - 1])
+        #            if len(entry_word) == 0:
+        #                continue
 
                     # FIX Gabriele: using a different variant of get_loc_from_words for the nondeterministic version of M^*
-                    if DETERMINISM == 'd':
-                        start_loc = self.get_loc_from_word(entry_word, locations, unique_sequences_dict, teacher)[0]
-                        dest_locs = self.get_loc_from_word(word, locations, unique_sequences_dict, teacher)
-                    elif DETERMINISM == 'n':
-                        start_loc = self.get_startloc_from_word(entry_word, locations, unique_sequences_dict, teacher)[0]
-                        dest_locs = self.get_destlocs_from_word(word, locations, unique_sequences_dict, teacher)
+        #            if DETERMINISM == 'd':
+        #                start_loc = self.get_loc_from_word(entry_word, locations, unique_sequences_dict, teacher)[0]
+        #                dest_locs = self.get_loc_from_word(word, locations, unique_sequences_dict, teacher)
+        #            elif DETERMINISM == 'n':
+        #                start_loc = self.get_startloc_from_word(entry_word, locations, unique_sequences_dict, teacher)[0]
+        #                dest_locs = self.get_destlocs_from_word(word, locations, unique_sequences_dict, teacher)
 
-                    if word != '':
-                        labels = str(word.sub_prefix(entry_word))
-                    else:
-                        labels = EMPTY_STRING
-                    for dest_loc in dest_locs:
-                        new_edge = Edge(start_loc, dest_loc, sync=labels)
-                        if start_loc is not None and dest_loc is not None and new_edge not in edges:
-                            edges.append(new_edge)
+        #            if word != '':
+        #                labels = str(word.sub_prefix(entry_word))
+        #            else:
+        #                labels = EMPTY_STRING
+        #            for dest_loc in dest_locs:
+        #                new_edge = Edge(start_loc, dest_loc, sync=labels)
+        #                if start_loc is not None and dest_loc is not None and new_edge not in edges:
+        #                    edges.append(new_edge)
 
         locations, edges = self.add_init_edges(locations, edges, unique_sequences_dict, teacher)
         learned_sha = StochasticHybridAutomaton(locations, edges)
 
-        learned_sha.sanity_check(unique_sequences_dict)
+        #learned_sha.sanity_check(unique_sequences_dict)
 
         return learned_sha
 
@@ -254,71 +236,25 @@ class ObsTable:
     # FIX Gabriele: added two variants of get_loc_from_word to deal with the nondeterministic version of M^*
 
     def get_startloc_from_word(self, word: Trace, locations: List[Location], seq_to_loc: Dict[Trace, str], teacher):
-        candidate_dest_locs = []
-
         if word in seq_to_loc.keys():
             loc = [l for l in locations if l.name == seq_to_loc[word]][0]
-            candidate_dest_locs.append(loc)
-        else:
-            if word in self.get_S():
-                curr_row = self.get_upper_observations()[self.get_S().index(word)]
-            elif word in self.get_low_S():
-                curr_row = self.get_lower_observations()[self.get_low_S().index(word)]
-            elif Trace(word[:-1]) in self.get_S():
-                row = self.get_S().index(Trace(word[:-1]))
-                column = self.get_E().index(Trace([word[-1]]))
-                needed_state = self.get_upper_observations()[row].state[column]
-                curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
-            elif Trace(word[:-1]) in self.get_low_S():
-                row = self.get_low_S().index(Trace(word[:-1]))
-                column = self.get_E().index(Trace([word[-1]]))
-                needed_state = self.get_lower_observations()[row].state[column]
-                curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
-
-            if not curr_row.is_populated():
-                return []
-
-            for i, row in enumerate(self.get_upper_observations()):
-                if EQ_CONDITION == 's':
-                    if self.get_S()[i] in seq_to_loc.keys() and teacher.eqr_query(curr_row, row, strict=True):
-                        loc = [l for l in locations if l.name == seq_to_loc[self.get_S()[i]]][0]
-                        candidate_dest_locs.append(loc)
-                else:
-                    if self.get_S()[i] in seq_to_loc.keys() and teacher.eqr_query(curr_row, row, strict=False):
-                        loc = [l for l in locations if l.name == seq_to_loc[self.get_S()[i]]][0]
-                        candidate_dest_locs.append(loc)
-
-        return candidate_dest_locs
+            candidate_start_loc = loc
+        else: raise Exception("location not found")
+        return candidate_start_loc
 
     def get_destlocs_from_word(self, word: Trace, locations: List[Location], seq_to_loc: Dict[Trace, str], teacher):
         candidate_dest_locs = []
-
-        if word in seq_to_loc.keys():
-            loc = [l for l in locations if l.name == seq_to_loc[word]][0]
-            candidate_dest_locs.append(loc)
-        else:
-            if word in self.get_S():
-                curr_row = self.get_upper_observations()[self.get_S().index(word)]
-            elif word in self.get_low_S():
-                curr_row = self.get_lower_observations()[self.get_low_S().index(word)]
-            elif Trace(word[:-1]) in self.get_S():
-                row = self.get_S().index(Trace(word[:-1]))
-                column = self.get_E().index(Trace([word[-1]]))
-                needed_state = self.get_upper_observations()[row].state[column]
-                curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
-            elif Trace(word[:-1]) in self.get_low_S():
-                row = self.get_low_S().index(Trace(word[:-1]))
-                column = self.get_E().index(Trace([word[-1]]))
-                needed_state = self.get_lower_observations()[row].state[column]
-                curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
-
-            if not curr_row.is_populated():
-                return []
-
-            for i, row in enumerate(self.get_upper_observations()):
-                # EQ_CONDITION == 's' is to be excluded when DETERMINISM = n
-                if self.get_S()[i] in seq_to_loc.keys() and teacher.eqr_query(curr_row, row, strict=False):
-                    loc = [l for l in locations if l.name == seq_to_loc[self.get_S()[i]]][0]
-                    candidate_dest_locs.append(loc)
+        if word in self.get_S():
+            curr_row = self.get_upper_observations()[self.get_S().index(word)]
+        elif word in self.get_low_S():
+            curr_row = self.get_lower_observations()[self.get_low_S().index(word)]
+        if not curr_row.is_populated():
+            return []
+        for i, row in enumerate(self.get_upper_observations()):
+            # for all s' in S such that row(s') w.eq. row(s+a),
+            # an edge between row(s) and row(s') with label 'a' must be added
+            if self.get_S()[i] in seq_to_loc.keys() and teacher.eqr_query(curr_row, row, strict=False):
+                loc = [l for l in locations if l.name == seq_to_loc[self.get_S()[i]]][0]
+                candidate_dest_locs.append(loc)
 
         return candidate_dest_locs
