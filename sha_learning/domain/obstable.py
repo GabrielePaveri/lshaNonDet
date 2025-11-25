@@ -17,6 +17,7 @@ config.sections()
 
 EQ_CONDITION = config['LSHA PARAMETERS']['EQ_CONDITION'].lower()
 DETERMINISM = config['LSHA PARAMETERS']['DETERMINISM'].lower()
+EDGES_CONDITION = config['LSHA PARAMETERS']['EDGES_CONDITION'].lower()
 
 
 class Row:
@@ -251,9 +252,13 @@ class ObsTable:
         if not curr_row.is_populated():
             return []
         for i, row in enumerate(self.get_upper_observations()):
-            # for all s' in S such that row(s') w.eq. row(s+a),
-            # an edge between row(s) and row(s') with label 'a' must be added
-            if self.get_S()[i] in seq_to_loc.keys() and teacher.eqr_query(curr_row, row, strict=False):
+            # an edge between row(s) and row(s') with label 'a' must be added:
+            # for all s' in S such that row(s') w.eq. row(s+a), if EDGES_CONDITION == w
+            # for all s' in S such that T(s') == T(s+a), if EDGES_CONDITION = t
+            if EDGES_CONDITION == 'w':
+                equivalent = teacher.eqr_query(curr_row, row, strict=False)
+            else: equivalent = teacher.weakest_eqr_query(curr_row, row)
+            if self.get_S()[i] in seq_to_loc.keys() and equivalent:
                 loc = [l for l in locations if l.name == seq_to_loc[self.get_S()[i]]][0]
                 candidate_dest_locs.append(loc)
 

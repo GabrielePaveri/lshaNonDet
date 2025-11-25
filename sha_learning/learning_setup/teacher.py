@@ -276,6 +276,12 @@ class Teacher:
                     return False
         return True
 
+    # weakest version of equivalence between rows:
+    # two rows are equivalent if their first entries are equal
+    def weakest_eqr_query(self, row1: Row, row2: Row):
+        return row1.state[0] == row2.state[0]
+
+
     #############################################
     # KNOWLEDGE REFINEMENT QUERY:
     # checks if there are ambiguous words in the observation table
