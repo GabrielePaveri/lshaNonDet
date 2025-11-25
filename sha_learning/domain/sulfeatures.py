@@ -1,3 +1,5 @@
+import configparser
+import os
 from typing import List, Dict
 
 import matplotlib.pyplot as plt
@@ -6,6 +8,13 @@ import scipy.stats as stats
 
 from sha_learning.domain.lshafeatures import Trace, TimedTrace, RealValuedVar, FlowCondition, ProbDistribution
 from sha_learning.domain.sigfeatures import ChangePoint, Event, SampledSignal, Timestamp, SignalPoint
+
+config = configparser.ConfigParser()
+config.read(
+    os.path.dirname(os.path.abspath(__file__)).split('sha_learning')[0] + 'sha_learning/resources/config/config.ini')
+config.sections()
+
+CS = config['SUL CONFIGURATION']['CASE_STUDY']
 
 
 class SystemUnderLearning:
@@ -93,6 +102,12 @@ class SystemUnderLearning:
                 end_timestamp = main_sig.points[-1].timestamp.to_secs()
 
             segment = [pt for pt in main_sig.points if start_timestamp <= pt.timestamp.to_secs() < end_timestamp]
+
+            if len(segment) == 0 and CS == 'WEAK_EQ_FAIL':
+                value = [pt.value for pt in main_sig.points if pt.timestamp.to_secs() < start_timestamp-1][-1]
+                pt = SignalPoint(start_timestamp, value)
+                segment = [pt, pt]
+
             segments.append(segment)
         else:
             return segments
