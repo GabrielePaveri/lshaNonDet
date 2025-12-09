@@ -11,7 +11,6 @@ broadcast chan pass_out, start_h_action, stop_h_action;
 *** CONSTANTS
 **/
 const double PI = 3.1415926535;
-const double INT16_MAX =  32767.0;
 
 
 // Human Fatigue Profiles [fatiguing rate, recovery rate]
@@ -71,12 +70,12 @@ const double ORT_VALS[4] = {0.0, 90.0, 180.0, -90.0};
 const int MAX_E = 15;
 
 bool force_exe = true;
-int force_act[MAX_E] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+int force_act[MAX_E] = {2, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
 // -&gt; DEFINE BOUND FOR QUERIES 
 // (you can refine it by examining simulations)
-const int TAU = 600;
-const int VERSION = 0;
+const int TAU = 200;
+const int VERSION = 1;
 //</declaration>
 	<template>
 		<name>HFoll_1</name>
@@ -1464,7 +1463,7 @@ next==1</label>
 		</transition>
 	</template>
 	<system>
-amy = HFoll_1(1, 48, 2, 3, -1);
+amy = HFoll_2(1, 48, 2, 3, -1);
 
 fake_o = Fake_o();
 
