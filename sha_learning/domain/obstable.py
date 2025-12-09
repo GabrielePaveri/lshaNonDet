@@ -298,32 +298,32 @@ class ObsTable:
     def get_destlocs_from_word(self, word: Trace, locations: List[Location], seq_to_loc: Dict[Trace, str], teacher):
         candidate_dest_locs = []
 
-        if word in seq_to_loc.keys():
-            loc = [l for l in locations if l.name == seq_to_loc[word]][0]
-            candidate_dest_locs.append(loc)
-        else:
-            if word in self.get_S():
-                curr_row = self.get_upper_observations()[self.get_S().index(word)]
-            elif word in self.get_low_S():
-                curr_row = self.get_lower_observations()[self.get_low_S().index(word)]
-            elif Trace(word[:-1]) in self.get_S():
-                row = self.get_S().index(Trace(word[:-1]))
-                column = self.get_E().index(Trace([word[-1]]))
-                needed_state = self.get_upper_observations()[row].state[column]
-                curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
-            elif Trace(word[:-1]) in self.get_low_S():
-                row = self.get_low_S().index(Trace(word[:-1]))
-                column = self.get_E().index(Trace([word[-1]]))
-                needed_state = self.get_lower_observations()[row].state[column]
-                curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
+        # if word in seq_to_loc.keys():
+        #     loc = [l for l in locations if l.name == seq_to_loc[word]][0]
+        #     candidate_dest_locs.append(loc)
+        # else:
+        if word in self.get_S():
+            curr_row = self.get_upper_observations()[self.get_S().index(word)]
+        elif word in self.get_low_S():
+            curr_row = self.get_lower_observations()[self.get_low_S().index(word)]
+        elif Trace(word[:-1]) in self.get_S():
+            row = self.get_S().index(Trace(word[:-1]))
+            column = self.get_E().index(Trace([word[-1]]))
+            needed_state = self.get_upper_observations()[row].state[column]
+            curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
+        elif Trace(word[:-1]) in self.get_low_S():
+            row = self.get_low_S().index(Trace(word[:-1]))
+            column = self.get_E().index(Trace([word[-1]]))
+            needed_state = self.get_lower_observations()[row].state[column]
+            curr_row = Row([needed_state] + [State([(None, None)])] * (len(self.get_E()) - 1))
 
-            if not curr_row.is_populated():
-                return []
+        if not curr_row.is_populated():
+            return []
 
-            for i, row in enumerate(self.get_upper_observations()):
-                # EQ_CONDITION == 's' is to be excluded when DETERMINISM = n
-                if self.get_S()[i] in seq_to_loc.keys() and teacher.eqr_query(curr_row, row, strict=False):
-                    loc = [l for l in locations if l.name == seq_to_loc[self.get_S()[i]]][0]
-                    candidate_dest_locs.append(loc)
+        for i, row in enumerate(self.get_upper_observations()):
+            # EQ_CONDITION == 's' is to be excluded when DETERMINISM = n
+            if self.get_S()[i] in seq_to_loc.keys() and teacher.eqr_query(curr_row, row, strict=False):
+                loc = [l for l in locations if l.name == seq_to_loc[self.get_S()[i]]][0]
+                candidate_dest_locs.append(loc)
 
         return candidate_dest_locs
