@@ -58,7 +58,7 @@ class SystemUnderLearning:
         # IDENTIFY CHANGE PTS IN DRIVER OVERLAY
         prev = [sig.points[0].value for sig in driver]
         for ts in [pt.timestamp for pt in driver[0].points]:
-            curr = [val_dic[ts] for val_dic in values]
+            curr = [val_dic[ts] for val_dic in values if ts in val_dic]
             if self.is_chg_pt(curr, prev):
                 chg_pts.append(ChangePoint(ts))
             prev = curr
@@ -101,10 +101,15 @@ class SystemUnderLearning:
             else:
                 end_timestamp = main_sig.points[-1].timestamp.to_secs()
 
+            # if signal ends after word, no segment is added
+            if end_timestamp == start_timestamp:
+                continue
+
             segment = [pt for pt in main_sig.points if start_timestamp <= pt.timestamp.to_secs() < end_timestamp]
 
+            # filling in missing change points
             if len(segment) == 0 and CS == 'WEAK_EQ_FAIL':
-                value = [pt.value for pt in main_sig.points if pt.timestamp.to_secs() < start_timestamp-1][-1]
+                value = [pt.value for pt in main_sig.points if pt.timestamp.to_secs() < start_timestamp][-1]
                 pt = SignalPoint(start_timestamp, value)
                 segment = [pt, pt]
 

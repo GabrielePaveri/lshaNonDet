@@ -50,70 +50,66 @@ def label_event(events: List[Event], signals: List[SampledSignal], t: Timestamp)
         old_loc = list(filter(lambda x: x.timestamp.to_secs() < t, loc.points))[-1]
     else: old_loc = -1
 
-#    if curr_loc.value == 3 or (curr_loc.value == 4 and old_loc.value == 3):
-#        identified_channel = events[2].chan
-#    elif curr_loc.value == 1:
-#        identified_channel = events[0].chan
-#    elif curr_loc.value == 6:
-#        identified_channel = events[3].chan
-#    else: identified_channel = events[1].chan
 
 
+    # StrongEqFail11
     # if curr_loc.value == 1:
     #     identified_channel = events[0].chan
-    # elif curr_loc.value == 7 or curr_loc.value == 6:
-    #     identified_channel = events[2].chan
-    # elif curr_loc.value == 4 and old_loc.value == 2:
+    # elif curr_loc.value == 6:
+    #     identified_channel = events[3].chan
+    # elif curr_loc.value == 3 or curr_loc.value == 8:
     #     identified_channel = events[2].chan
     # else: identified_channel = events[1].chan
 
+    # StrongEqFail10
+    # if curr_loc.value == 1:
+    #     identified_channel = events[0].chan
+    # elif curr_loc.value == 6:
+    #     identified_channel = events[3].chan
+    # elif curr_loc.value == 3:
+    #     identified_channel = events[2].chan
+    # elif curr_loc.value == 2 and old_loc.value != 8:
+    #     identified_channel = events[2].chan
+    # else: identified_channel = events[1].chan
 
+    # StrongEqFail9
+    # if curr_loc.value == 1:
+    #     identified_channel = events[0].chan
+    # elif curr_loc.value == 2 and old_loc.value == 1:
+    #     identified_channel = events[1].chan
+    # elif curr_loc.value == 10 or curr_loc.value == 11 or curr_loc.value == 13:
+    #     identified_channel = events[1].chan
+    # elif curr_loc.value == 12 and old_loc.value == 13:
+    #     identified_channel = events[1].chan
+    # elif curr_loc.value == 4 and old_loc.value == 1:
+    #     identified_channel = events[3].chan
+    # elif curr_loc.value == 8 or curr_loc.value == 9:
+    #     identified_channel = events[3].chan
+    # else: identified_channel = events[2].chan
+
+    # StrongEqFail2 (noLoop)
     if curr_loc.value == 1:
         identified_channel = events[0].chan
     elif curr_loc.value == 6:
         identified_channel = events[3].chan
     elif curr_loc.value == 3:
         identified_channel = events[2].chan
-    elif curr_loc.value == 2 and (old_loc.value == 9 or old_loc.value == 7):
+    elif curr_loc.value == 4 and old_loc.value == 3:
         identified_channel = events[2].chan
     else: identified_channel = events[1].chan
 
-    #if curr_loc.value == 1:
-    #    identified_channel = events[0].chan
-    #if curr_loc.value == 6:
-    #   identified_channel = events[2].chan
-    #else: identified_channel = events[1].chan
-
-    #if curr_loc.value == 1:
-    #    identified_channel = events[0].chan
-    #if curr_loc.value == 3 or (curr_loc.value == 4 and old_loc.value == 3):
-    #    identified_channel = events[2].chan
-    #elif curr_loc.value == 6:
-    #    identified_channel = events[3].chan
-    #else: identified_channel = events[1].chan
-
-    # if curr_loc.value == 1:
-    #     identified_channel = events[0].chan
-    # elif curr_loc.value == 6:
-    #     identified_channel = events[2].chan
-    # elif curr_loc.value == 4 or curr_loc.value == 8:
-    #     identified_channel = events[3].chan
-    # else: identified_channel = events[1].chan
+    # StrongEqFail2loop
+    if curr_loc.value == 1:
+        identified_channel = events[0].chan
+    elif curr_loc.value == 6 or curr_loc.value == 5:
+        identified_channel = events[3].chan
+    elif curr_loc.value == 3:
+        identified_channel = events[2].chan
+    elif curr_loc.value == 4 and old_loc.value == 3:
+        identified_channel = events[2].chan
+    else: identified_channel = events[1].chan
 
 
-    #if curr_loc.value == 1:
-    #    identified_channel = events[0].chan
-    #elif curr_loc.value == 2:
-    #    identified_channel = events[2].chan
-    #elif curr_loc.value == 3 and old_loc.value == 1:
-    #    identified_channel = events[1].chan
-    #elif curr_loc.value == 3 and old_loc.value == 2:
-    #    identified_channel = events[1].chan
-    #else: identified_channel = events[3].chan
-
-
-#    identified_channel = events[0].chan if (curr_loc.value == 2 or (curr_loc.value == 4 and old_loc.value == 2)) \
-#       else events[1].chan
 
     #identified_event = [e for e in events if e.guard == identified_guard and e.chan == identified_channel][0]
     identified_event = [e for e in events if e.chan == identified_channel][0]

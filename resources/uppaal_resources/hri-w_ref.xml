@@ -11,7 +11,6 @@ broadcast chan pass_out, start_h_action, stop_h_action;
 *** CONSTANTS
 **/
 const double PI = 3.1415926535;
-const double INT16_MAX =  32767.0;
 
 
 // Human Fatigue Profiles [fatiguing rate, recovery rate]

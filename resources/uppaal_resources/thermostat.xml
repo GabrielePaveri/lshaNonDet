@@ -5,15 +5,15 @@
 
 double T_r = 0.0;
 
-const double OFF_FULLY_ISOLATED[2] = {120.0, 0.01};
-const double OFF_TWO_WINDOWS_CLOSED[2] = {100.0, 0.01};
-const double OFF_ONE_WINDOW_OPEN[2] = {80.0, 0.01};
-const double OFF_TWO_WINDOWS_OPEN[2] = {60.0, 0.01};
+const double OFF_FULLY_ISOLATED[2] = {200.0, 0.01};
+const double OFF_TWO_WINDOWS_CLOSED[2] = {150.0, 0.01};
+const double OFF_ONE_WINDOW_OPEN[2] = {100.0, 0.01};
+const double OFF_TWO_WINDOWS_OPEN[2] = {50.0, 0.01};
 
-const double ON_FULLY_ISOLATED[2] = {0.9, 0.01};
-const double ON_TWO_WINDOWS_CLOSED[2] = {0.7, 0.01};
-const double ON_ONE_WINDOW_OPEN[2] = {0.5, 0.01};
-const double ON_TWO_WINDOWS_OPEN[2] = {0.3, 0.01};
+const double ON_FULLY_ISOLATED[2] = {2.0, 0.01};
+const double ON_TWO_WINDOWS_CLOSED[2] = {1.5, 0.01};
+const double ON_ONE_WINDOW_OPEN[2] = {1.0, 0.01};
+const double ON_TWO_WINDOWS_OPEN[2] = {0.5, 0.01};
 
 const double PI = 3.14159265358979323846;
 
@@ -28,7 +28,7 @@ double Normal(double mean, double stdDev) {
 const int MAX_E = 15;
 bool force_exe = true;
 int curr = 0;
-int force_open[MAX_E] = {0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+int force_open[MAX_E] = {0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
 const int TAU = 200;
 const int R = 10;
@@ -120,7 +120,7 @@ void update_K(bool on, int open) {
 		<transition id="id9">
 			<source ref="id8"/>
 			<target ref="id6"/>
-			<label kind="assignment" x="-93" y="85">x=0,
+			<label kind="assignment" x="-94" y="85">x=0,
 update_Tr(1)</label>
 		</transition>
 		<transition id="id10">
