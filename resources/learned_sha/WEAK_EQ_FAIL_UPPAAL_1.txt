@@ -1,0 +1,42 @@
+
+
+--OBSERVABLE EVENTS--
+
+start: start
+a: a
+b: b
+c: c
+
+
+--LEARNED DISTRIBUTIONS--
+
+D_0(2.000000)
+D_1(4.000000)
+D_2(8.000000)
+D_3(10.000000)
+D_4(14.000000)
+
+
+--FINAL OBSERVATION TABLE--
+
+         |ε        |a        
+---------+---------+---------
+start    |(f_0,D_0)|(f_0,D_1)
+starta   |(f_0,D_1)|(f_0,D_2)
+startaa  |(f_0,D_2)|(ε,ε)    
+startaac |(f_0,D_3)|(f_0,D_2)
+startc   |(f_0,D_1)|(f_0,D_4)
+startca  |(f_0,D_4)|(f_0,D_2)
+startb   |(f_0,D_1)|(ε,ε)    
+---------+---------+---------
+startaaca|(f_0,D_2)|(ε,ε)    
+startcaa |(f_0,D_2)|(ε,ε)    
+startbb  |(f_0,D_2)|(ε,ε)    
+---------+---------+---------
+
+
+
+--PERFORMANCE DATA--
+
+SAMPLED TRACES:	203
+RUNNING TIME:	0:00:16.122206
