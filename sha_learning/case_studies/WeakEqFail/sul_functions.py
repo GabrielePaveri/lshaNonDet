@@ -99,15 +99,15 @@ def label_event(events: List[Event], signals: List[SampledSignal], t: Timestamp)
     else: identified_channel = events[1].chan
 
     # StrongEqFail2loop
-    if curr_loc.value == 1:
-        identified_channel = events[0].chan
-    elif curr_loc.value == 6 or curr_loc.value == 5:
-        identified_channel = events[3].chan
-    elif curr_loc.value == 3:
-        identified_channel = events[2].chan
-    elif curr_loc.value == 4 and old_loc.value == 3:
-        identified_channel = events[2].chan
-    else: identified_channel = events[1].chan
+    # if curr_loc.value == 1:
+    #     identified_channel = events[0].chan
+    # elif curr_loc.value == 6 or curr_loc.value == 5:
+    #     identified_channel = events[3].chan
+    # elif curr_loc.value == 3:
+    #     identified_channel = events[2].chan
+    # elif curr_loc.value == 4 and old_loc.value == 3:
+    #     identified_channel = events[2].chan
+    # else: identified_channel = events[1].chan
 
 
 
